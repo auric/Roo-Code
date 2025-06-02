@@ -1,5 +1,11 @@
 import { ToolArgs } from "./types"
 
+export interface SearchFilesParams {
+	path: string
+	regex: string
+	file_pattern?: string
+}
+
 export function getSearchFilesDescription(args: ToolArgs): string {
 	return `## search_files
 Description: Request to perform a regex search across files in a specified directory, providing context-rich results. This tool searches for patterns or specific content across multiple files, displaying each match with encapsulating context.

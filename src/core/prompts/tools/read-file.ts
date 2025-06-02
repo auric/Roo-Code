@@ -1,5 +1,14 @@
 import { ToolArgs } from "./types"
 
+export interface ReadFileFileArg {
+	path: string
+	line_range?: string | string[]
+}
+
+export interface ReadFileParams {
+	args: ReadFileFileArg[]
+}
+
 export function getReadFileDescription(args: ToolArgs): string {
 	const maxConcurrentReads = args.settings?.maxConcurrentFileReads ?? 15
 	const isMultipleReadsEnabled = maxConcurrentReads > 1

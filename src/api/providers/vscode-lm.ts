@@ -1,13 +1,14 @@
 import { Anthropic } from "@anthropic-ai/sdk"
 import * as vscode from "vscode"
 
-import { type ModelInfo, openAiModelInfoSaneDefaults } from "@roo-code/types"
+import { type ModelInfo, type ToolName, openAiModelInfoSaneDefaults } from "@roo-code/types"
 
 import type { ApiHandlerOptions } from "../../shared/api"
 import { SELECTOR_SEPARATOR, stringifyVsCodeLmModelSelector } from "../../shared/vsCodeSelectorUtils"
 
 import { ApiStream } from "../transform/stream"
 import { convertToVsCodeLmMessages } from "../transform/vscode-lm-format"
+import { convertToolCallInputToXml } from "../../core/llm-tools/tool-xml-converter"
 
 import { BaseProvider } from "./base-provider"
 import type { SingleCompletionHandler, ApiHandlerCreateMessageMetadata } from "../index"
@@ -368,10 +369,11 @@ export class VsCodeLmHandler extends BaseProvider implements SingleCompletionHan
 			// Create the response stream with minimal required options
 			const requestOptions: vscode.LanguageModelChatRequestOptions = {
 				justification: `Roo Code would like to use '${client.name}' from '${client.vendor}', Click 'Allow' to proceed.`,
+				tools: [applyDiffTool], // Pass defined tool to the request
 			}
 
 			// Note: Tool support is currently provided by the VSCode Language Model API directly
-			// Extensions can register tools using vscode.lm.registerTool()
+			// Extensions can register tools using vscode.lm.registerTool() or provide them in the request.
 
 			const response: vscode.LanguageModelChatResponse = await client.sendRequest(
 				vsCodeLmMessages,
@@ -412,24 +414,18 @@ export class VsCodeLmHandler extends BaseProvider implements SingleCompletionHan
 							continue
 						}
 
-						// Convert tool calls to text format with proper error handling
-						const toolCall = {
-							type: "tool_call",
-							name: chunk.name,
-							arguments: chunk.input,
-							callId: chunk.callId,
-						}
-
-						const toolCallText = JSON.stringify(toolCall)
-						accumulatedText += toolCallText
-
 						// Log tool call for debugging
-						console.debug("Roo Code <Language Model API>: Processing tool call:", {
+						console.debug("Roo Code <Language Model API>: Processing generic tool call:", {
 							name: chunk.name,
 							callId: chunk.callId,
 							inputSize: JSON.stringify(chunk.input).length,
 						})
-
+						let toolCallText = ""
+						toolCallText = convertToolCallInputToXml(
+							chunk.name as ToolName,
+							chunk.input as Record<string, any>,
+						)
+						accumulatedText += toolCallText
 						yield {
 							type: "text",
 							text: toolCallText,
@@ -577,4 +573,25 @@ export async function getVsCodeLmModels() {
 		)
 		return []
 	}
+}
+
+const applyDiffTool: vscode.LanguageModelChatTool = {
+	name: "apply_diff",
+	description:
+		"Request to apply targeted modifications to an existing file by searching for specific sections of content and replacing them. This tool is ideal for precise, surgical edits when you know the exact content to change. It helps maintain proper indentation and formatting. You can perform multiple distinct search and replace operations within a single `apply_diff` call by providing multiple SEARCH/REPLACE blocks in the `diff` parameter. The SEARCH section must exactly match existing content including whitespace and indentation. If you\'re not confident in the exact content to search for, use the read_file tool first to get the exact content. ALWAYS make as many changes in a single \'apply_diff\' request as possible using multiple SEARCH/REPLACE blocks.",
+	inputSchema: {
+		type: "object",
+		properties: {
+			path: {
+				type: "string",
+				description: "The path of the file to modify (relative to the current workspace directory)",
+			},
+			diff: {
+				type: "string",
+				description:
+					"The search/replace block defining the changes. Format:\n<<<<<<< SEARCH\n:start_line: (required) The line number of original content where the search block starts.\n-------\n[exact content to find including whitespace]\n=======\n[new content to replace with]\n>>>>>>> REPLACE",
+			},
+		},
+		required: ["path", "diff"],
+	},
 }

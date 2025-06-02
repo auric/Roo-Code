@@ -1,5 +1,15 @@
 import { ToolArgs } from "./types"
 
+export interface SearchAndReplaceParams {
+	path: string
+	search: string
+	replace: string
+	start_line?: number
+	end_line?: number
+	use_regex?: boolean
+	ignore_case?: boolean
+}
+
 export function getSearchAndReplaceDescription(args: ToolArgs): string {
 	return `## search_and_replace
 Description: Use this tool to find and replace specific text strings or patterns (using regex) within a file. It's suitable for targeted replacements across multiple locations within the file. Supports literal text and regex patterns, case sensitivity options, and optional line ranges. Shows a diff preview before applying changes.

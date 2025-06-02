@@ -1,5 +1,10 @@
 import { ToolArgs } from "./types"
 
+export interface AccessMcpResourceParams {
+	server_name: string
+	uri: string
+}
+
 export function getAccessMcpResourceDescription(args: ToolArgs): string | undefined {
 	if (!args.mcpHub) {
 		return undefined

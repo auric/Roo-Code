@@ -1,3 +1,8 @@
+export interface CodebaseSearchParams {
+	query: string
+	path?: string
+}
+
 export function getCodebaseSearchDescription(): string {
 	return `## codebase_search
 Description: Find files most relevant to the search query.\nThis is a semantic search tool, so the query should ask for something semantically matching what is needed.\nIf it makes sense to only search in a particular directory, please specify it in the path parameter.\nUnless there is a clear reason to use your own search query, please just reuse the user's exact query with their wording.\nTheir exact wording/phrasing can often be helpful for the semantic search query. Keeping the same exact question format can also be helpful.\nIMPORTANT: Queries MUST be in English. Translate non-English queries before searching.

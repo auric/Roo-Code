@@ -1,5 +1,10 @@
 import { ToolArgs } from "./types"
 
+export interface NewTaskParams {
+	mode: string
+	message: string
+}
+
 export function getNewTaskDescription(_args: ToolArgs): string {
 	return `## new_task
 Description: This will let you create a new task instance in the chosen mode using your provided message.

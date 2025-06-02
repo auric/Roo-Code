@@ -1,3 +1,8 @@
+export interface SwitchModeParams {
+	mode_slug: string
+	reason?: string
+}
+
 export function getSwitchModeDescription(): string {
 	return `## switch_mode
 Description: Request to switch to a different mode. This tool allows modes to request switching to another mode when needed, such as switching to Code mode to make code changes. The user must approve the mode switch.

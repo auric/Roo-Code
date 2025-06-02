@@ -1,5 +1,13 @@
 import { ToolArgs } from "./types"
 
+export interface BrowserActionParams {
+	action: "launch" | "hover" | "click" | "type" | "resize" | "scroll_down" | "scroll_up" | "close"
+	url?: string
+	coordinate?: string // "x,y"
+	size?: string // "w,h"
+	text?: string
+}
+
 export function getBrowserActionDescription(args: ToolArgs): string | undefined {
 	if (!args.supportsComputerUse) {
 		return undefined

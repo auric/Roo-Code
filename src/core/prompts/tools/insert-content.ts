@@ -1,5 +1,11 @@
 import { ToolArgs } from "./types"
 
+export interface InsertContentParams {
+	path: string
+	line: number // 0 for append
+	content: string
+}
+
 export function getInsertContentDescription(args: ToolArgs): string {
 	return `## insert_content
 Description: Use this tool specifically for adding new lines of content into a file without modifying existing content. Specify the line number to insert before, or use line 0 to append to the end. Ideal for adding imports, functions, configuration blocks, log entries, or any multi-line text block.

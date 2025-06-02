@@ -1,3 +1,7 @@
+export interface FetchInstructionsParams {
+	task: "create_mcp_server" | "create_mode"
+}
+
 export function getFetchInstructionsDescription(): string {
 	return `## fetch_instructions
 Description: Request to fetch instructions to perform a task

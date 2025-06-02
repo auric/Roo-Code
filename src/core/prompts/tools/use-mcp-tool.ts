@@ -1,5 +1,11 @@
 import { ToolArgs } from "./types"
 
+export interface UseMcpToolParams {
+	server_name: string
+	tool_name: string
+	arguments: Record<string, any> // JSON object
+}
+
 export function getUseMcpToolDescription(args: ToolArgs): string | undefined {
 	if (!args.mcpHub) {
 		return undefined

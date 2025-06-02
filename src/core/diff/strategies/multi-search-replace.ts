@@ -10,6 +10,11 @@ import { normalizeString } from "../../../utils/text-normalization"
 
 const BUFFER_LINES = 40 // Number of extra context lines to show before and after matches
 
+export interface ApplyDiffParams {
+	path: string
+	diff: string
+}
+
 function getSimilarity(original: string, search: string): number {
 	// Empty searches are no longer supported
 	if (search === "") {
