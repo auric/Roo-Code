@@ -1,8 +1,13 @@
 import { Anthropic } from "@anthropic-ai/sdk"
 
-import type { ProviderSettings, ModelInfo } from "@roo-code/types"
+import type { ProviderSettings, ModelInfo, ModeConfig } from "@roo-code/types"
 
 import { ApiStream } from "./transform/stream"
+
+import type { ToolArgs } from "../core/prompts/tools/types"
+import { CodeIndexManager } from "../services/code-index/manager"
+import type { Mode } from "../shared/modes"
+import { DiffStrategy } from "../shared/tools"
 
 import {
 	GlamaHandler,
@@ -34,8 +39,12 @@ export interface SingleCompletionHandler {
 }
 
 export interface ApiHandlerCreateMessageMetadata {
-	mode?: string
 	taskId: string
+	mode: Mode
+	toolArgs: ToolArgs
+	customModes?: ModeConfig[]
+	experiments?: Record<string, boolean>
+	codeIndexManager?: CodeIndexManager
 }
 
 export interface ApiHandler {

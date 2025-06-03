@@ -1,3 +1,4 @@
+import * as vscode from "vscode"
 import type { ToolName, ModeConfig } from "@roo-code/types"
 
 import { TOOL_GROUPS, ALWAYS_AVAILABLE_TOOLS, DiffStrategy } from "../../../shared/tools"
@@ -24,6 +25,25 @@ import { getNewTaskDescription } from "./new-task"
 import { getCodebaseSearchDescription } from "./codebase-search"
 import { CodeIndexManager } from "../../../services/code-index/manager"
 
+import { executeCommandNativeTool } from "./execute-command"
+import { getReadFileNativeTool } from "./read-file"
+import { fetchInstructionsNativeTool } from "./fetch-instructions"
+import { writeToFileNativeTool } from "./write-to-file"
+import { searchFilesNativeTool } from "./search-files"
+import { listFilesNativeTool } from "./list-files"
+import { insertContentNativeTool } from "./insert-content"
+import { searchAndReplaceNativeTool } from "./search-and-replace"
+import { listCodeDefinitionNamesNativeTool } from "./list-code-definition-names"
+import { getBrowserActionNativeTool } from "./browser-action"
+import { askFollowupQuestionNativeTool } from "./ask-followup-question"
+import { attemptCompletionNativeTool } from "./attempt-completion"
+import { useMcpToolNativeTool } from "./use-mcp-tool"
+import { accessMcpResourceNativeTool } from "./access-mcp-resource"
+import { switchModeNativeTool } from "./switch-mode"
+import { newTaskNativeTool } from "./new-task"
+import { codebaseSearchNativeTool } from "./codebase-search"
+import { applyDiffNativeTool } from "../../diff/strategies/multi-search-replace"
+
 // Map of tool names to their description functions
 const toolDescriptionMap: Record<string, (args: ToolArgs) => string | undefined> = {
 	execute_command: (args) => getExecuteCommandDescription(args),
@@ -43,35 +63,18 @@ const toolDescriptionMap: Record<string, (args: ToolArgs) => string | undefined>
 	new_task: (args) => getNewTaskDescription(args),
 	insert_content: (args) => getInsertContentDescription(args),
 	search_and_replace: (args) => getSearchAndReplaceDescription(args),
-	apply_diff: (args) =>
-		args.diffStrategy ? args.diffStrategy.getToolDescription({ cwd: args.cwd, toolOptions: args.toolOptions }) : "",
+	apply_diff: (args) => (args.diffStrategy ? args.diffStrategy.getToolDescription({ cwd: args.cwd }) : ""),
 }
 
-export function getToolDescriptionsForMode(
+function getApplicableToolNamesForMode(
 	mode: Mode,
-	cwd: string,
-	supportsComputerUse: boolean,
-	codeIndexManager?: CodeIndexManager,
-	diffStrategy?: DiffStrategy,
-	browserViewportSize?: string,
-	mcpHub?: McpHub,
-	customModes?: ModeConfig[],
-	experiments?: Record<string, boolean>,
-	partialReadsEnabled?: boolean,
-	settings?: Record<string, any>,
-): string {
+	customModes: ModeConfig[] | undefined,
+	experiments: Record<string, boolean> | undefined,
+	codeIndexManager: CodeIndexManager | undefined,
+	diffStrategy: DiffStrategy | undefined,
+): Set<ToolName> {
 	const config = getModeConfig(mode, customModes)
-	const args: ToolArgs = {
-		cwd,
-		supportsComputerUse,
-		diffStrategy,
-		browserViewportSize,
-		mcpHub,
-		partialReadsEnabled,
-		settings,
-	}
-
-	const tools = new Set<string>()
+	const tools = new Set<ToolName>()
 
 	// Add tools from mode's groups
 	config.groups.forEach((groupEntry) => {
@@ -89,7 +92,7 @@ export function getToolDescriptionsForMode(
 						experiments ?? {},
 					)
 				) {
-					tools.add(tool)
+					tools.add(tool as ToolName)
 				}
 			})
 		}
@@ -106,7 +109,38 @@ export function getToolDescriptionsForMode(
 		tools.delete("codebase_search")
 	}
 
-	// Map tool descriptions for allowed tools
+	if (!diffStrategy) {
+		tools.delete("apply_diff")
+	}
+	return tools
+}
+
+export function getToolDescriptionsForMode(
+	mode: Mode,
+	cwd: string,
+	supportsComputerUse: boolean,
+	codeIndexManager?: CodeIndexManager,
+	diffStrategy?: DiffStrategy,
+	browserViewportSize?: string,
+	mcpHub?: McpHub,
+	customModes?: ModeConfig[],
+	experiments?: Record<string, boolean>,
+	partialReadsEnabled?: boolean,
+	settings?: Record<string, any>,
+): string {
+	const args: ToolArgs = {
+		// For description map
+		cwd,
+		supportsComputerUse,
+		diffStrategy,
+		browserViewportSize,
+		mcpHub,
+		partialReadsEnabled,
+		settings,
+	}
+
+	const tools = getApplicableToolNamesForMode(mode, customModes, experiments, codeIndexManager, diffStrategy)
+
 	const descriptions = Array.from(tools).map((toolName) => {
 		const descriptionFn = toolDescriptionMap[toolName]
 		if (!descriptionFn) {
@@ -115,11 +149,64 @@ export function getToolDescriptionsForMode(
 
 		return descriptionFn({
 			...args,
-			toolOptions: undefined, // No tool options in group-based approach
 		})
 	})
 
 	return `# Tools\n\n${descriptions.filter(Boolean).join("\n\n")}`
+}
+
+type NativeToolDefinition = vscode.LanguageModelChatTool | ((args: ToolArgs) => vscode.LanguageModelChatTool)
+
+const nativeToolDefinitions: Partial<Record<ToolName, NativeToolDefinition>> = {
+	apply_diff: applyDiffNativeTool,
+	read_file: getReadFileNativeTool,
+	ask_followup_question: askFollowupQuestionNativeTool,
+	access_mcp_resource: accessMcpResourceNativeTool,
+	attempt_completion: attemptCompletionNativeTool,
+	browser_action: getBrowserActionNativeTool,
+	codebase_search: codebaseSearchNativeTool,
+	execute_command: executeCommandNativeTool,
+	fetch_instructions: fetchInstructionsNativeTool,
+	insert_content: insertContentNativeTool,
+	list_code_definition_names: listCodeDefinitionNamesNativeTool,
+	list_files: listFilesNativeTool,
+	new_task: newTaskNativeTool,
+	search_and_replace: searchAndReplaceNativeTool,
+	search_files: searchFilesNativeTool,
+	switch_mode: switchModeNativeTool,
+	use_mcp_tool: useMcpToolNativeTool,
+	write_to_file: writeToFileNativeTool,
+}
+
+export function getNativeToolsForMode(
+	mode: Mode,
+	args: ToolArgs,
+	customModes?: ModeConfig[],
+	experiments?: Record<string, boolean>,
+	codeIndexManager?: CodeIndexManager,
+): vscode.LanguageModelChatTool[] {
+	const activeNativeTools: vscode.LanguageModelChatTool[] = []
+	const applicableToolNames = getApplicableToolNamesForMode(
+		mode,
+		customModes,
+		experiments,
+		codeIndexManager,
+		args.diffStrategy,
+	)
+
+	for (const toolName of applicableToolNames) {
+		const definition = nativeToolDefinitions[toolName]
+		if (definition) {
+			if (typeof definition === "function") {
+				activeNativeTools.push(definition(args))
+			} else {
+				activeNativeTools.push(definition)
+			}
+		} else {
+			console.warn(`Roo Code <Native Tools>: Native tool definition not found for ${toolName}`)
+		}
+	}
+	return activeNativeTools
 }
 
 // Export individual description functions for backward compatibility

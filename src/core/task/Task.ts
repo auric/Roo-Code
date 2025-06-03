@@ -1678,9 +1678,31 @@ export class Task extends EventEmitter<ClineEvents> {
 			}
 		}
 
+		const provider = this.providerRef.deref()
+		if (!provider) {
+			// This should ideally not happen if the task is active
+			throw new Error("ClineProvider reference lost, cannot construct metadata for API call.")
+		}
+
 		const metadata: ApiHandlerCreateMessageMetadata = {
-			mode: mode,
+			mode: mode ?? defaultModeSlug,
 			taskId: this.taskId,
+			toolArgs: {
+				cwd: this.cwd,
+				supportsComputerUse:
+					(this.api.getModel().info.supportsComputerUse ?? false) && (state?.browserToolEnabled ?? true),
+				diffStrategy: this.diffStrategy,
+				browserViewportSize: state?.browserViewportSize ?? "900x600",
+				mcpHub: state?.mcpEnabled ? await McpServerManager.getInstance(provider.context, provider) : undefined,
+				partialReadsEnabled: state?.maxReadFileLine !== -1,
+				settings: {
+					maxConcurrentFileReads: state?.maxConcurrentFileReads,
+					maxReadFileLine: state?.maxReadFileLine,
+				},
+			},
+			customModes: state?.customModes,
+			experiments: state?.experiments,
+			codeIndexManager: provider.codeIndexManager,
 		}
 
 		const stream = this.api.createMessage(systemPrompt, cleanConversationHistory, metadata)
