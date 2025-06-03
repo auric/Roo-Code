@@ -253,7 +253,7 @@ export interface DiffStrategy {
 	 * @param args The tool arguments including cwd and toolOptions
 	 * @returns The complete tool description including format requirements and examples
 	 */
-	getToolDescription(args: { cwd: string; toolOptions?: { [key: string]: string } }): string
+	getToolDescription(args: { cwd: string }): string
 
 	/**
 	 * Apply a diff to the original content

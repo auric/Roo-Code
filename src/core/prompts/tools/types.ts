@@ -7,7 +7,6 @@ export type ToolArgs = {
 	diffStrategy?: DiffStrategy
 	browserViewportSize?: string
 	mcpHub?: McpHub
-	toolOptions?: any
 	partialReadsEnabled?: boolean
 	settings?: Record<string, any>
 }
