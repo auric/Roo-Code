@@ -1,9 +1,11 @@
+import * as vscode from "vscode"
+import type { ToolName } from "@roo-code/types"
 import { ToolArgs } from "./types"
 
 export interface WriteToFileParams {
 	path: string
 	content: string
-	line_count: number
+	line_count: string // Native tool schema expects string.
 }
 
 export function getWriteToFileDescription(args: ToolArgs): string {
@@ -43,4 +45,28 @@ Example: Requesting to write to frontend-config.json
 </content>
 <line_count>14</line_count>
 </write_to_file>`
+}
+
+export const writeToFileNativeTool: vscode.LanguageModelChatTool = {
+	name: "write_to_file" as ToolName,
+	description:
+		"Writes content to a file, overwriting if it exists or creating it if it doesn't. Creates necessary directories.",
+	inputSchema: {
+		type: "object",
+		properties: {
+			path: {
+				type: "string",
+				description: "Path of the file to write to (relative to workspace root).",
+			},
+			content: {
+				type: "string",
+				description: "The complete content to write to the file.",
+			},
+			line_count: {
+				type: "string", // API expects string
+				description: "The total number of lines in the provided content.",
+			},
+		},
+		required: ["path", "content", "line_count"],
+	},
 }

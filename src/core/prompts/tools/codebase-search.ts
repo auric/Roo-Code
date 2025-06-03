@@ -1,3 +1,7 @@
+import * as vscode from "vscode"
+import type { ToolName } from "@roo-code/types"
+import type { ToolArgs } from "./types"
+
 export interface CodebaseSearchParams {
 	query: string
 	path?: string
@@ -21,4 +25,24 @@ Example: Searching for functions related to user authentication
 <path>/path/to/directory</path>
 </codebase_search>
 `
+}
+
+export const codebaseSearchNativeTool: vscode.LanguageModelChatTool = {
+	name: "codebase_search" as ToolName,
+	description: "Performs a semantic search for code relevant to a query, optionally within a specific path.",
+	inputSchema: {
+		type: "object",
+		properties: {
+			query: {
+				type: "string",
+				description: "The natural language query for semantic search.",
+			},
+			path: {
+				type: "string",
+				description:
+					"Optional directory to search in (relative to workspace root). Defaults to the workspace root.",
+			},
+		},
+		required: ["query"],
+	},
 }

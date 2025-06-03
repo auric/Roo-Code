@@ -1,3 +1,5 @@
+import * as vscode from "vscode"
+import type { ToolName } from "@roo-code/types"
 import { ToolArgs } from "./types"
 
 export interface ExecuteCommandParams {
@@ -27,4 +29,24 @@ Example: Requesting to execute ls in a specific directory if directed
 <command>ls -la</command>
 <cwd>/home/user/projects</cwd>
 </execute_command>`
+}
+
+export const executeCommandNativeTool: vscode.LanguageModelChatTool = {
+	name: "execute_command" as ToolName,
+	description: "Executes a shell command, optionally in a specified working directory.",
+	inputSchema: {
+		type: "object",
+		properties: {
+			command: {
+				type: "string",
+				description: "The shell command to execute.",
+			},
+			cwd: {
+				type: "string",
+				description:
+					"Optional working directory for the command (relative to workspace root). Defaults to the workspace root.",
+			},
+		},
+		required: ["command"],
+	},
 }

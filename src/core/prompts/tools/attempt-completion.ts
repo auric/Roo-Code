@@ -1,3 +1,6 @@
+import * as vscode from "vscode"
+import type { ToolName } from "@roo-code/types"
+
 export interface AttemptCompletionParams {
 	result: string
 	command?: string
@@ -25,4 +28,23 @@ I've updated the CSS
 </result>
 <command>open index.html</command>
 </attempt_completion>`
+}
+
+export const attemptCompletionNativeTool: vscode.LanguageModelChatTool = {
+	name: "attempt_completion" as ToolName,
+	description: "Signals task completion and presents the final result to the user, optionally with a demo command.",
+	inputSchema: {
+		type: "object",
+		properties: {
+			result: {
+				type: "string",
+				description: "The final result of the task.",
+			},
+			command: {
+				type: "string",
+				description: "Optional CLI command to demonstrate the result.",
+			},
+		},
+		required: ["result"],
+	},
 }

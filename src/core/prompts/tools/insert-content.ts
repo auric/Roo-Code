@@ -1,8 +1,10 @@
+import * as vscode from "vscode"
+import type { ToolName } from "@roo-code/types"
 import { ToolArgs } from "./types"
 
 export interface InsertContentParams {
 	path: string
-	line: number // 0 for append
+	line: string // 0 for append. Native tool schema expects string.
 	content: string
 }
 
@@ -36,4 +38,27 @@ Example for appending to the end of file:
 </content>
 </insert_content>
 `
+}
+
+export const insertContentNativeTool: vscode.LanguageModelChatTool = {
+	name: "insert_content" as ToolName,
+	description: "Inserts new lines of content into a file at a specified line number or appends to the end.",
+	inputSchema: {
+		type: "object",
+		properties: {
+			path: {
+				type: "string",
+				description: "Path to the file (relative to workspace root).",
+			},
+			line: {
+				type: "string", // API expects string, even though it's a number conceptually
+				description: "Line number (1-based) to insert before, or '0' to append to the end of the file.",
+			},
+			content: {
+				type: "string",
+				description: "The content to insert.",
+			},
+		},
+		required: ["path", "line", "content"],
+	},
 }

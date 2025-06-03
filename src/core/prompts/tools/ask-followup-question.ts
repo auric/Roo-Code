@@ -1,3 +1,6 @@
+import * as vscode from "vscode"
+import type { ToolName } from "@roo-code/types"
+
 export interface AskFollowupQuestionParams {
 	question: string
 	follow_up: { suggest: string }[] // Array of objects, each with a suggest string
@@ -31,4 +34,26 @@ Example: Requesting to ask the user for the path to the frontend-config.json fil
 <suggest>./frontend-config.json</suggest>
 </follow_up>
 </ask_followup_question>`
+}
+
+export const askFollowupQuestionNativeTool: vscode.LanguageModelChatTool = {
+	name: "ask_followup_question" as ToolName,
+	description: "Asks the user a clarifying question and suggests possible answers.",
+	inputSchema: {
+		type: "object",
+		properties: {
+			question: {
+				type: "string",
+				description: "The question to ask the user.",
+			},
+			follow_up: {
+				type: "array",
+				items: {
+					type: "string",
+				},
+				description: "Suggested answers for the user.",
+			},
+		},
+		required: ["question", "follow_up"],
+	},
 }

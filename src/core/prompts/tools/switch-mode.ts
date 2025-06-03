@@ -1,3 +1,6 @@
+import * as vscode from "vscode"
+import type { ToolName } from "@roo-code/types"
+
 export interface SwitchModeParams {
 	mode_slug: string
 	reason?: string
@@ -20,4 +23,23 @@ Example: Requesting to switch to code mode
 <mode_slug>code</mode_slug>
 <reason>Need to make code changes</reason>
 </switch_mode>`
+}
+
+export const switchModeNativeTool: vscode.LanguageModelChatTool = {
+	name: "switch_mode" as ToolName,
+	description: "Requests to switch to a different operational mode, with an optional reason.",
+	inputSchema: {
+		type: "object",
+		properties: {
+			mode_slug: {
+				type: "string",
+				description: "The slug of the mode to switch to (e.g., 'code', 'ask').",
+			},
+			reason: {
+				type: "string",
+				description: "Optional reason for switching modes.",
+			},
+		},
+		required: ["mode_slug"],
+	},
 }

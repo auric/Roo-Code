@@ -1,3 +1,5 @@
+import * as vscode from "vscode"
+import type { ToolName } from "@roo-code/types"
 import { ToolArgs } from "./types"
 
 export interface ListCodeDefinitionNamesParams {
@@ -25,4 +27,20 @@ Examples:
 <list_code_definition_names>
 <path>src/</path>
 </list_code_definition_names>`
+}
+
+export const listCodeDefinitionNamesNativeTool: vscode.LanguageModelChatTool = {
+	name: "list_code_definition_names" as ToolName,
+	description:
+		"Lists definition names (classes, functions, etc.) from a source file or top-level files in a directory.",
+	inputSchema: {
+		type: "object",
+		properties: {
+			path: {
+				type: "string",
+				description: "Path to the file or directory (relative to workspace root) to analyze.",
+			},
+		},
+		required: ["path"],
+	},
 }

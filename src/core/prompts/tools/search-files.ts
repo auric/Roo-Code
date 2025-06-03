@@ -1,3 +1,5 @@
+import * as vscode from "vscode"
+import type { ToolName } from "@roo-code/types"
 import { ToolArgs } from "./types"
 
 export interface SearchFilesParams {
@@ -26,4 +28,27 @@ Example: Requesting to search for all .ts files in the current directory
 <regex>.*</regex>
 <file_pattern>*.ts</file_pattern>
 </search_files>`
+}
+
+export const searchFilesNativeTool: vscode.LanguageModelChatTool = {
+	name: "search_files" as ToolName,
+	description: "Performs a regex search across files in a directory, optionally filtered by a glob pattern.",
+	inputSchema: {
+		type: "object",
+		properties: {
+			path: {
+				type: "string",
+				description: "Directory to search in (relative to workspace root).",
+			},
+			regex: {
+				type: "string",
+				description: "The regular expression pattern to search for (Rust regex syntax).",
+			},
+			file_pattern: {
+				type: "string",
+				description: "Optional glob pattern to filter files (e.g., '*.ts'). Defaults to all files.",
+			},
+		},
+		required: ["path", "regex"],
+	},
 }

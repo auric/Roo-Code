@@ -1,3 +1,5 @@
+import * as vscode from "vscode"
+import type { ToolName } from "@roo-code/types"
 import { ToolArgs } from "./types"
 
 export interface NewTaskParams {
@@ -25,4 +27,23 @@ Example:
 <message>Implement a new feature for the application.</message>
 </new_task>
 `
+}
+
+export const newTaskNativeTool: vscode.LanguageModelChatTool = {
+	name: "new_task" as ToolName,
+	description: "Creates a new sub-task instance in a chosen mode with an initial message.",
+	inputSchema: {
+		type: "object",
+		properties: {
+			mode: {
+				type: "string",
+				description: "Slug of the mode for the new task (e.g., 'code').",
+			},
+			message: {
+				type: "string",
+				description: "Initial message/instructions for the new task.",
+			},
+		},
+		required: ["mode", "message"],
+	},
 }

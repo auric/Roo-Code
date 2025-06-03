@@ -1,3 +1,5 @@
+import * as vscode from "vscode"
+import type { ToolName } from "@roo-code/types"
 import { ToolArgs } from "./types"
 
 export interface ListFilesParams {
@@ -22,4 +24,23 @@ Example: Requesting to list all files in the current directory
 <path>.</path>
 <recursive>false</recursive>
 </list_files>`
+}
+
+export const listFilesNativeTool: vscode.LanguageModelChatTool = {
+	name: "list_files" as ToolName,
+	description: "Lists files and directories within a specified path, optionally recursively.",
+	inputSchema: {
+		type: "object",
+		properties: {
+			path: {
+				type: "string",
+				description: "Path to the directory (relative to workspace root) whose contents will be listed.",
+			},
+			recursive: {
+				type: "boolean",
+				description: "Whether to list contents recursively. Defaults to false.",
+			},
+		},
+		required: ["path"],
+	},
 }

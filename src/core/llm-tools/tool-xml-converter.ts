@@ -268,10 +268,16 @@ function convertReadFileToXml(params: ReadFileParams): string {
 		for (const arg of params.args) {
 			xml += `    <file>\n`
 			xml += `      <path>${escapeXml(arg.path)}</path>\n`
-			if (arg.line_range !== undefined) {
-				// Ensure line_range is a string before escaping
-				const lineRangeStr = Array.isArray(arg.line_range) ? arg.line_range.join(",") : arg.line_range
-				xml += `      <line_range>${escapeXml(lineRangeStr)}</line_range>\n`
+			if (arg.line_range !== undefined && typeof arg.line_range === "string" && arg.line_range.trim() !== "") {
+				// Split the string by comma to handle multiple ranges like "1-10,20-30"
+				// Each part is then put into its own <line_range> tag.
+				const ranges = arg.line_range
+					.split(",")
+					.map((r) => r.trim())
+					.filter((r) => r.length > 0)
+				for (const range of ranges) {
+					xml += `      <line_range>${escapeXml(range)}</line_range>\n`
+				}
 			}
 			xml += `    </file>\n`
 		}

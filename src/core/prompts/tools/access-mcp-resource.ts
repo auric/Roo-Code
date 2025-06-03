@@ -1,3 +1,5 @@
+import * as vscode from "vscode"
+import type { ToolName } from "@roo-code/types"
 import { ToolArgs } from "./types"
 
 export interface AccessMcpResourceParams {
@@ -26,4 +28,23 @@ Example: Requesting to access an MCP resource
 <server_name>weather-server</server_name>
 <uri>weather://san-francisco/current</uri>
 </access_mcp_resource>`
+}
+
+export const accessMcpResourceNativeTool: vscode.LanguageModelChatTool = {
+	name: "access_mcp_resource" as ToolName,
+	description: "Accesses a named resource from a connected MCP server.",
+	inputSchema: {
+		type: "object",
+		properties: {
+			server_name: {
+				type: "string",
+				description: "The name of the MCP server providing the resource.",
+			},
+			uri: {
+				type: "string",
+				description: "The URI identifying the specific resource to access.",
+			},
+		},
+		required: ["server_name", "uri"],
+	},
 }

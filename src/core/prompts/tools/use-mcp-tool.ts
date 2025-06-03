@@ -1,3 +1,5 @@
+import * as vscode from "vscode"
+import type { ToolName } from "@roo-code/types"
 import { ToolArgs } from "./types"
 
 export interface UseMcpToolParams {
@@ -40,4 +42,36 @@ Example: Requesting to use an MCP tool
 }
 </arguments>
 </use_mcp_tool>`
+}
+
+export const useMcpToolNativeTool: vscode.LanguageModelChatTool = {
+	name: "use_mcp_tool" as ToolName,
+	description: "Uses a tool provided by a connected MCP server, passing specified arguments.",
+	// inputSchema is dynamic and will be enriched by the MCP Hub with actual server/tool schemas.
+	// For the base definition, we define the core parameters.
+	inputSchema: {
+		type: "object",
+		properties: {
+			server_name: {
+				type: "string",
+				description: "The name of the MCP server providing the tool.",
+			},
+			tool_name: {
+				type: "string",
+				description: "The name of the tool to execute on the MCP server.",
+			},
+			arguments: {
+				type: "object",
+				description:
+					"A JSON object containing the tool's input parameters, conforming to the specific tool's schema.",
+				// It's not feasible to define a static schema for 'arguments' here,
+				// as it depends on the 'tool_name' and 'server_name'.
+				// The actual validation will happen server-side or via dynamic schema lookup.
+				// For the VS Code API, we can mark it as a generic object.
+				// Additional properties and specific required fields would be part of the dynamic schema.
+				additionalProperties: true,
+			},
+		},
+		required: ["server_name", "tool_name", "arguments"],
+	},
 }

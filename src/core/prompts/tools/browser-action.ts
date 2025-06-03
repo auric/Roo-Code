@@ -1,3 +1,5 @@
+import * as vscode from "vscode"
+import type { ToolName } from "@roo-code/types"
 import { ToolArgs } from "./types"
 
 export interface BrowserActionParams {
@@ -64,4 +66,38 @@ Example: Requesting to click on the element at coordinates 450,300
 <action>click</action>
 <coordinate>450,300</coordinate>
 </browser_action>`
+}
+
+export function getBrowserActionNativeTool(args: ToolArgs): vscode.LanguageModelChatTool {
+	return {
+		name: "browser_action" as ToolName,
+		description: "Performs an action in a Puppeteer-controlled browser (launch, click, type, scroll, close).",
+		inputSchema: {
+			type: "object",
+			properties: {
+				action: {
+					type: "string",
+					description: "The action to perform.",
+					enum: ["launch", "hover", "click", "type", "resize", "scroll_down", "scroll_up", "close"],
+				},
+				url: {
+					type: "string",
+					description: "URL for 'launch' action.",
+				},
+				coordinate: {
+					type: "string",
+					description: `X,Y coordinates for 'click' or 'hover', e.g., '450,300'. Must be within ${args.browserViewportSize} resolution.`,
+				},
+				text: {
+					type: "string",
+					description: "Text for 'type' action.",
+				},
+				size: {
+					type: "string",
+					description: "Width,Height for 'resize', e.g., '1280,720'.",
+				},
+			},
+			required: ["action"],
+		},
+	}
 }

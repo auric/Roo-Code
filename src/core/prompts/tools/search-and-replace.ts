@@ -1,11 +1,13 @@
+import * as vscode from "vscode"
+import type { ToolName } from "@roo-code/types"
 import { ToolArgs } from "./types"
 
 export interface SearchAndReplaceParams {
 	path: string
 	search: string
 	replace: string
-	start_line?: number
-	end_line?: number
+	start_line?: string // Native tool schema expects string.
+	end_line?: string // Native tool schema expects string.
 	use_regex?: boolean
 	ignore_case?: boolean
 }
@@ -46,4 +48,44 @@ Examples:
 <use_regex>true</use_regex>
 <ignore_case>true</ignore_case>
 </search_and_replace>`
+}
+
+export const searchAndReplaceNativeTool: vscode.LanguageModelChatTool = {
+	name: "search_and_replace" as ToolName,
+	description:
+		"Finds and replaces text or regex patterns within a file, with options for case sensitivity and line ranges.",
+	inputSchema: {
+		type: "object",
+		properties: {
+			path: {
+				type: "string",
+				description: "Path to the file to modify (relative to workspace root).",
+			},
+			search: {
+				type: "string",
+				description: "The text or regex pattern to search for.",
+			},
+			replace: {
+				type: "string",
+				description: "The text to replace matches with.",
+			},
+			start_line: {
+				type: "string",
+				description: "Optional starting line number (1-based) for the search range.",
+			},
+			end_line: {
+				type: "string",
+				description: "Optional ending line number (1-based) for the search range.",
+			},
+			use_regex: {
+				type: "boolean",
+				description: "Set to true to treat the search parameter as a regex pattern. Defaults to false.",
+			},
+			ignore_case: {
+				type: "boolean",
+				description: "Set to true to perform a case-insensitive search. Defaults to false.",
+			},
+		},
+		required: ["path", "search", "replace"],
+	},
 }

@@ -1,3 +1,5 @@
+import * as vscode from "vscode"
+import type { ToolName } from "@roo-code/types"
 import { ToolArgs } from "./types"
 
 export interface ReadFileFileArg {
@@ -91,4 +93,41 @@ ${
 		: ""
 }
 ${isMultipleReadsEnabled ? `- When you need to read more than ${maxConcurrentReads} files, prioritize the most critical files first, then use subsequent read_file requests for additional files` : ""}`
+}
+
+export function getReadFileNativeTool(args: ToolArgs): vscode.LanguageModelChatTool {
+	const pathDescription = `Path to the file (relative to workspace root ${args.cwd}).`
+	const lineRangeDescription = args.partialReadsEnabled
+		? "Optional line range, e.g., '1-100' or '25'. Multiple ranges can be specified for a single file if needed (though the schema expects a single string, the XML converter handles arrays)."
+		: "Line ranges are currently disabled."
+
+	return {
+		name: "read_file" as ToolName,
+		description: "Reads content of one or more files or specified line ranges within them.",
+		inputSchema: {
+			type: "object",
+			properties: {
+				args: {
+					type: "array",
+					description: "Array of file specifications to read.",
+					items: {
+						type: "object",
+						properties: {
+							path: {
+								type: "string",
+								description: pathDescription,
+							},
+							line_range: {
+								// Even if XML supports array, native schema might be simpler with string
+								type: "string",
+								description: lineRangeDescription,
+							},
+						},
+						required: ["path"],
+					},
+				},
+			},
+			required: ["args"],
+		},
+	}
 }
